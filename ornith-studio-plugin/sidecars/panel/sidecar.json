@@ -1,0 +1,18 @@
+{
+  "command": "node",
+  "args": ["main.mjs"],
+  "restart_policy": "always",
+  "display_name": "Ornith 1.5 Studio",
+  "description": "Local Ornith 1.5 35B-A3B (32K context) chat box, model/reasoning mode selector dropdown, and HP Z420 GPU monitor.",
+  "has_web_ui": true,
+  "ui_config": {
+    "display_name": "Ornith 1.5 Studio",
+    "views": [
+      {
+        "path": "/",
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_AUX_PANE",
+        "title": "Ornith 1.5 Studio"
+      }
+    ]
+  }
+}

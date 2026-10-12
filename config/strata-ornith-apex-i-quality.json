@@ -1,0 +1,50 @@
+{
+ "exe": "/mnt/nvme_storage/ai_projects/polystrata/engine-poly/strata-poly",
+ "args": [
+  "--model",
+  "/mnt/nvme_storage/ai_projects/strata_models/ornith-APEX-I-QUALITY/Ornith-1.5-35B-A3B-APEX-MTP-I-Quality.gguf",
+  "--max-context",
+  "32768",
+  "--expert-profile",
+  "/mnt/nvme_storage/ai_projects/PolyStrata-data/packs/ornith-apex-i-quality/expert-profile.txt",
+  "--no-draft",
+  "--no-graphs",
+  "--prompt-batch",
+  "128",
+  "--stage-mib",
+  "64",
+  "--vram-reserve-mib",
+  "550",
+  "--conversation-cache-mib",
+  "8192",
+  "--tail-skip",
+  "6"
+ ],
+ "cwd": "/mnt/nvme_storage/ai_projects/polystrata",
+ "tokenizer": "/mnt/nvme_storage/ai_projects/PolyStrata-data/packs/ornith-apex-i-quality/tokenizer",
+ "model_name": "ornith-1.5-35b-a3b-apex-i-quality",
+ "display_name": "Ornith 1.5 35B-A3B APEX-I-QUALITY",
+ "log": "/mnt/nvme_storage/ai_projects/polystrata/strata-ornith-apex-i-quality.log",
+ "lib_dirs": [
+  "/mnt/nvme_storage/ai_projects/polystrata/.venv/bin",
+  "/mnt/nvme_storage/ai_projects/polystrata/.venv/lib64"
+ ],
+ "port": 8080,
+ "gpu": 0,
+ "gpus_asked": true,
+ "reasoning_budget_tokens": 2048,
+ "reasoning_loop_recovery": "recover",
+ "reasoning_close_retry": true,
+ "sampling": {
+  "temperature": 0.6,
+  "top_p": 0.95,
+  "top_k": 20,
+  "presence_penalty": 0.5
+ },
+ "mcp_servers": {
+  "z420_sensors": {
+   "command": "/mnt/nvme_storage/ai_projects/polystrata/build-poly/z420-sensors-mcp",
+   "args": []
+  }
+ }
+}

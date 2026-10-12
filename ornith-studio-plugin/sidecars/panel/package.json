@@ -1,0 +1,7 @@
+{
+  "name": "ornith-studio-panel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ornith 1.5 Studio side panel for Antigravity IDE."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "ornith-studio",
+  "displayName": "Ornith 1.5 Studio (Z420)",
+  "version": "1.0.0",
+  "description": "Local Ornith 1.5 35B-A3B (APEX-I-QUALITY, 32K context) chat studio panel with model/reasoning selector dropdown, live HP Z420 GTX 1050 Ti VRAM & tok/s monitor, and @ornith primary chat integration.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "@ornith Review my current code for runtime exceptions and specification bugs",
+    "@ornith Write a clean, well-documented implementation for this feature",
+    "Check Z420 GPU VRAM and PolyStrata Ornith 1.5 status"
+  ]
+}

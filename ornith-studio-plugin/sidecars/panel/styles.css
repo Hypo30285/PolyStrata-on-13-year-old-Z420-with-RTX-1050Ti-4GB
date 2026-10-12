@@ -1,0 +1,408 @@
+/*
+ * Theme-aware styles for Ornith 1.5 Studio (Antigravity Sidecar UI Extension).
+ */
+
+:root {
+  --radius: 8px;
+  --gap: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--background, #0f172a);
+  color: var(--foreground, #e2e8f0);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.studio-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+/* Topbar ------------------------------------------------------------------ */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--card, #1e293b);
+  border: 1px solid var(--card-border, var(--border, #334155));
+  border-radius: var(--radius);
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-title {
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctx-pill {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary, #38bdf8) 20%, transparent);
+  color: var(--primary, #38bdf8);
+}
+
+.brand-sub {
+  font-size: 11px;
+  color: var(--muted-foreground, #94a3b8);
+}
+
+.brand-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #64748b;
+}
+
+.brand-dot.online {
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.brand-dot.standby {
+  background: #f59e0b;
+}
+
+.brand-dot.offline {
+  background: #ef4444;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Telemetry Strip --------------------------------------------------------- */
+
+.telemetry-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.metric-chip {
+  padding: 6px 8px;
+  background: var(--card, #1e293b);
+  border: 1px solid var(--card-border, var(--border, #334155));
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-label {
+  font-size: 10px;
+  color: var(--muted-foreground, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.metric-value {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vram-bar {
+  height: 3px;
+  background: var(--secondary, #334155);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.vram-fill {
+  height: 100%;
+  background: var(--primary, #38bdf8);
+  transition: width 0.3s ease;
+}
+
+/* Quick Action Chips ------------------------------------------------------ */
+
+.quick-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-btn {
+  padding: 3px 9px;
+  font-size: 11px;
+  border-radius: 999px;
+  background: var(--secondary, #1e293b);
+  color: var(--foreground, #e2e8f0);
+  border: 1px solid var(--border, #334155);
+  cursor: pointer;
+}
+
+.chip-btn:hover {
+  background: color-mix(in srgb, var(--primary, #38bdf8) 18%, var(--secondary, #1e293b));
+}
+
+/* Chat Stream ------------------------------------------------------------- */
+
+.chat-stream {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 2px;
+}
+
+.empty-state {
+  margin: auto;
+  text-align: center;
+  max-width: 340px;
+  padding: 20px;
+}
+
+.empty-state h2 {
+  font-size: 14px;
+  margin: 0 0 6px;
+}
+
+.msg {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--card-border, var(--border, #334155));
+  background: var(--card, #1e293b);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.msg-user {
+  background: color-mix(in srgb, var(--primary, #38bdf8) 10%, var(--card, #1e293b));
+  align-self: flex-end;
+  width: 92%;
+}
+
+.msg-assistant {
+  width: 100%;
+}
+
+.msg.pending {
+  font-style: italic;
+  color: var(--muted-foreground, #94a3b8);
+}
+
+.msg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.msg-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted-foreground, #94a3b8);
+}
+
+.msg-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* Thinking trace ---------------------------------------------------------- */
+
+.thinking-box {
+  background: var(--content, var(--background, #0f172a));
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.thinking-box summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--muted-foreground, #94a3b8);
+}
+
+.thinking-pre {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 180px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: var(--muted-foreground, #94a3b8);
+}
+
+/* Code blocks ------------------------------------------------------------- */
+
+.code-block {
+  margin: 6px 0;
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--content, var(--background, #0f172a));
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  font-size: 11px;
+  background: var(--secondary, #1e293b);
+  border-bottom: 1px solid var(--border, #334155);
+}
+
+.code-block pre {
+  margin: 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+}
+
+/* Composer & Model Select Dropdown ---------------------------------------- */
+
+.composer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--card, #1e293b);
+  border: 1px solid var(--card-border, var(--border, #334155));
+  border-radius: var(--radius);
+}
+
+textarea {
+  width: 100%;
+  padding: 8px;
+  resize: none;
+  font: inherit;
+  color: inherit;
+  background: var(--content, var(--background, #0f172a));
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+}
+
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--primary, #38bdf8);
+  outline-offset: 1px;
+}
+
+.composer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.model-selector-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.model-select {
+  width: 100%;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground, #e2e8f0);
+  background: var(--content, var(--background, #0f172a));
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button {
+  padding: 6px 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--primary-foreground, #0f172a);
+  background: var(--primary, #38bdf8);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button.secondary {
+  color: var(--foreground, #e2e8f0);
+  background: transparent;
+  border-color: var(--border, #334155);
+}
+
+button.small-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.muted {
+  color: var(--muted-foreground, #94a3b8);
+}
+
+.small {
+  font-size: 11px;
+}
+
+.toast {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  padding: 7px 12px;
+  text-align: center;
+  background: var(--card, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 25%);
+}
+
+.toast.error {
+  border-color: #ef4444;
+}
