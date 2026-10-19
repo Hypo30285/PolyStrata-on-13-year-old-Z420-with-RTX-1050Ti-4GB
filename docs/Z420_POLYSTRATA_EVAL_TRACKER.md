@@ -39,16 +39,17 @@ The baseline row (`Row #0`) comes from the Oct 14 Lighteval report (`N=5` smoke 
 
 | # | Change | Status | Samples per task | GSM8K | ARC-C | Prefill (t/s) | Decode (t/s) | VRAM (MiB) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | Baseline (Oct 14 full 35B REST) | Done | 5 | 5/5 (100%) | 5/5 (100%) | 32.0–41.8 | 20.3–21.3 | 3,186 |
+| 0 | Baseline (Oct 14 full 35B REST, `22.09 GiB` mixed GGUF, PCIe 2.0) | Done | 5 | 5/5 (100%) | 5/5 (100%) | 32.0–41.8 | 20.3–21.3 | 3,186 (`363–633` exp) |
 | 0b | Baseline rerun (`FP32` micro-eval, `N=200`) | Done | 200 | 200/200 (100.0% ±0.03%) | 200/200 (100.0% ±0.03%) | 28,170.2 (med of 3) | 794.5 (med of 3) | 2,729 |
-| 1 | Dedicated video GPU (`GT 1030 2GB` `GP108_V4/V6` ready) | Planned |  |  |  |  |  |  |
-| 2 | 24GB inference GPU (`Quadro P6000` `GP102` `GROUP_M=6` ready) | Planned |  |  |  |  |  |  |
-| 3 | Xeon E5-2697 v2 (`-march=ivybridge -mf16c` ready) | Planned |  |  |  |  |  |  |
-| 4 | ReBAR and above-4G BIOS (`DIRECT_FULL_APERTURE` ready) | Planned |  |  |  |  |  |  |
+| 0c | PCIe Gen 3 (`8.0 GT/s`) + Unified `IQ4_XS` Optimum GGUF (`18.35 GiB` total / `17.92 GiB` active) | Done | 5 + 3 | 5/5 (100%) | 5/5 (100%) | **59.5–59.8 med (64.5 peak)** | **20.4–20.8 med (21.6 peak)** | 3,606 (`778` exp) |
+| 1 | ReBAR and above-4G BIOS update (`DIRECT_FULL_APERTURE` ready) | Next (Step 1) |  |  |  |  |  |  |
+| 2 | Xeon E5-2697 v2 CPU upgrade (`12C/24T`, `30 MB L3`, `DDR3-1866`, `-march=ivybridge -mf16c`) | Planned (Step 2) |  |  |  |  |  |  |
+| 3 | Dedicated video GPU (`GT 1030` Slot 5 for display + all `4 GB` on `GTX 1050 Ti` Slot 2 for inference) | Planned (Step 3) |  |  |  |  |  |  |
+| 4 | 24GB inference GPU (`18.35 GiB` `IQ4_XS` Optimum fits 100% of `10,240` experts in VRAM) | Planned (Step 4) |  |  |  |  |  |  |
 | 5 | TileLang kernels (`V7 PASCAL-Q8_DP4A` + `V10 uint4 2-Col MMVQ 5.0 us` + Fused `SwiGLU 7.1 us` + Grouped 8-Exp `52.0 us` + All 6 Pascal Dies) | Done | 200 | 200/200 (100.0% ±0.03%) | 200/200 (100.0% ±0.03%) | 330,560.4 (`11.73x` vs FP32; `7.88–8.99 TOPS`) | 2,091.1 (`2.63x` vs FP32; `5.0 us` raw / `52.55 us` PyTorch) | 2,729 |
 | 6 | PyTorch model tweaks (`V9 PASCAL-Q4_DP4A` 25-pt MSE clip + `1,152` Dual-Tier `640 Q4 + 512 Q2` Experts + `PascalFusedSwiGLUFFN` `2.73x` + `PascalGroupedMoELayer` `10.11x`) | Done | 200 | 200/200 (100.0% ±0.03%) | 200/200 (100.0% ±0.03%) | 317,923.1 (`11.29x` vs FP32; `8.22 TOPS`) | 2,081.2 (`2.62x` vs FP32; `48.16 us` SwiGLU / `56.71 us` 8-Exp) | 2,729 (`967.5 MiB` 640 Q4 + `390.0 MiB` 512 Q2) |
 
-The BIOS flash sits after the GPU swap because NVIDIA compute does not need ReBAR; reorder if you flash earlier.
+*Note:* Rows #1–#4 are ordered to match the exact single-variable hardware upgrade sequence: **(1) BIOS update $\rightarrow$ Test**, **(2) Xeon E5-2697 v2 CPU upgrade $\rightarrow$ Test**, **(3) GT 1030 for video + all 4GB on GTX 1050 Ti for inference $\rightarrow$ Test**, and **(4) 24GB inference GPU $\rightarrow$ Test**.
 
 ## Quality-drift checks
 
