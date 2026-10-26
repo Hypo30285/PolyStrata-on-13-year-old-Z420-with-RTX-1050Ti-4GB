@@ -50,17 +50,21 @@ Whenever the user starts a message with `@ornith`, `/ornith`, or explicitly asks
    | Page cache | Not recorded (warm vs cold) |
 
    ### 4.3 Results Log
-   The baseline row comes from the Oct 14 Lighteval report. Its 5-sample accuracy is a smoke test, not a score, so rerun at 200 or more samples per task before comparing.
+   The baseline row comes from the Oct 14 Lighteval report (`N=5` smoke test) plus the `N=200` `FP32` and `GP102` Quadro P6000 (`Slot 2 @ PCIe 3.0 x16`) + `Intel Xeon E5-2697 v2` (`12C/24T` Ivy Bridge `F16C`) runs.
 
    | # | Change | Status | Samples per task | GSM8K | ARC-C | Prefill (t/s) | Decode (t/s) | VRAM (MiB) |
    | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-   | 0 | Baseline (Oct 14) | Done | 5 | 5/5 | 5/5 | 32.0–41.8 | 20.3–21.3 | 3,186 |
-   | 1 | Dedicated video GPU | Planned |  |  |  |  |  |  |
-   | 2 | 24GB inference GPU | Planned |  |  |  |  |  |  |
-   | 3 | Xeon E5-2697 v2 | Planned |  |  |  |  |  |  |
-   | 4 | ReBAR and above-4G BIOS | Planned |  |  |  |  |  |  |
-   | 5 | TileLang kernels | Planned |  |  |  |  |  |  |
-   | 6 | PyTorch model tweaks | Planned |  |  |  |  |  |  |
+   | 0 | Baseline (Oct 14: E5-2690 v1 [Retired], GTX 1050 Ti 4GB) | Done | 5 | 5/5 | 5/5 | 32.0–41.8 | 20.3–21.3 | 3,186 |
+   | 1 | ReBAR and above-4G BIOS update | Planned |  |  |  |  |  |  |
+   | 2 | Xeon E5-2697 v2 (`12C/24T` Ivy Bridge `F16C`; `E5-2690 v1` retired) | Done | 200 | 200/200 | 200/200 | `76.82 GOPS` (`24` HW threads) | `24` HW threads | Host RAM (`64 GB`) |
+   | 3 | Dedicated video GPU (`GT 1030`) | Skipped (Superseded by 24GB Quadro P6000 in Slot 2 driving new Samsung QHD monitor) |  |  |  |  |  |  |
+   | 4c | 24GB Quadro P6000 (`GP102`) properly seated in Slot 2 @ full `PCIe 3.0 x16` (`16/16` lanes) + `PolyStrata` (`strata-poly v0.1.42`) + `22.09 GiB` Original `APEX-I-QUALITY` | Done | 5 + 3 | 5/5 (100%) | 5/5 (100%) | 353.0–379.3 med (394.8 peak) | 18.90–19.50 med (19.60 peak) | 23,498 (`100%` exp) |
+   | 4d | Mainline `llama.cpp` (`commit 5c40fb2fb`, CUDA `sm_61` + `-mf16c`) on Quadro P6000 (`PCIe 3.0 x16`) | Done | 5 + 3 | 5/5 (100%) | 5/5 (100%) | `355.9` (`IQ4_XS`) / `361.2` (`APEX`) med | `50.13` (`IQ4_XS`, `3.58x` vs `4a`) / `52.95` (`APEX`, `2.74x` vs `4c`) med | 19,426 / 22,893 |
+   | 4e | **`ik_llama.cpp` (`commit 9bb70bc` + Pascal `sm_61` `cc=610` 2-Rows/Block MMVQ + `-fmoe -fa -gr` + NextN MTP `blk.40`) on Quadro P6000 (`PCIe 3.0 x16`)** | Done | 5 + 3 | 5/5 (100%) | 5/5 (100%) | **`970.17` (`IQ4_XS` `pp512`) / `900.72` (`APEX` `pp512`)** (`435.6` / `411.0` REST med) | **`64.35` (`IQ4_XS` `tg128`, `4.60x`) / `60.27` med (`62.28` pk) REST+MTP** · **`61.42` (`APEX` `tg128`, `3.18x`) / `58.28` med (`59.65` pk) REST+MTP** | 19,830–20,531 (`IQ4_XS`) / 23,276–24,342 (`APEX`) |
+   | 5b | TileLang `GP102_V0..V8` Kernels on Quadro P6000 (`30.58 TOPS` `__dp4a`) | Done | 200 | 200/200 | 200/200 | 883,417.5 med | 1,935.0 med (`17.54 us` 8-Exp) | 23,555 |
+   | 6b | PyTorch model tweaks on Quadro P6000 (`V9 PASCAL-Q4_DP4A` + `avx_f16c`) | Done | 200 | 200/200 | 200/200 | 803,002.9 med | 1,839.7 med | 23,555 |
+   | 7 | 128 GB DDR3-1866 ECC RDIMM (`8 x 16 GB` matched Samsung RDIMM set sourced on eBay) | Planned |  |  |  |  |  |  |
+   | 8 | Corsair 750W PSU + 2nd GPU in Slot 5 (`PCIe 3.0 x16`) + 18TB Exos (`Kapton tape` / `cut 3.3V` PWDIS isolation) | Planned |  |  |  |  |  |  |
 
    *Note:* The BIOS flash sits after the GPU swap because NVIDIA compute does not need ReBAR; reorder if you flash earlier.
 
@@ -104,3 +108,11 @@ Whenever the user starts a message with `@ornith`, `/ornith`, or explicitly asks
         - **Accuracy & Quality-Drift Checks ($N \ge 200$ Samples):** `GSM8K: <score> (±95% CI)` | `ARC-C: <score> (±95% CI)` | `Top-1 Token Agreement (50 prompts): <X>%` | `Mean KL Divergence: <val>`.
         - **Checklist & Artifacts:** Confirm all 6 per-run checklist items (`[x] Commit/Flags`, `[x] Method Card Complete`, `[x] Median of 3+ Runs`, `[x] Raw JSON & Engine Log Saved`, `[x] nvidia-smi & sensors Captured`, `[x] Page Cache Noted`) with link to GitHub/Hugging Face artifacts.
 
+5. **Standard End-of-Day (EOD) Engineering Dossier Reporting Rule (To Bailey CC Owner):**
+   - Whenever generating or sending an End-of-Day (EOD) report or project summary to **Bailey** (`Bburnsed1995@gmail.com`) and **Owner / Tom** (`supertruckertom@gmail.com`), **ALWAYS** use the standardized **6-Part Engineering Dossier Format** and dispatch via `/home/tom/.local/bin/send_mail --to Bburnsed1995@gmail.com --cc supertruckertom@gmail.com --subject "..." --file <artifact_path>`:
+     1. **Part 1: Executive Project Summary** (including cross-system notes for Tom's HP Z420 Dual-GPU Slot 2/Slot 5 setup and Bailey's Ryzen 9 5900XT + RTX 2060 + Intel Arc Pro B70 32GB rig).
+     2. **Part 2: Complete Implementation Plan (`implementation_plan.md`)**.
+     3. **Part 3: Complete Execution & Telemetry Logs (`output.txt`, benchmark logs, and live `nvidia-smi` + `lm-sensors` telemetry)**.
+     4. **Part 4: Project Walkthrough (`walkthrough.md`) & Task Checklist (`task.md`)**.
+     5. **Part 5: Complete Engineering Documentation (`Makefile`, `AGENTS.md`, `SOURCES.md`, CLI/MCP reference, and source architecture)**.
+     6. **Part 6: Complete Chronological Chat Prompts & Agent Outputs** from the session.
