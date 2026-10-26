@@ -1,0 +1,17 @@
+{
+  "eval_set_id": "TDeUMy3np7t8g7pKXmDW3T",
+  "tasks": [
+    {
+      "name": "arc:challenge",
+      "task_id": "L5q44NFJMDF4KPqSdMBQCh",
+      "task_args": {
+        "lighteval_task_config": "arc:challenge",
+        "epochs": 1,
+        "epochs_reducer": null
+      },
+      "model": "openai/ornith-1.5-35b-a3b-apex-i-quality",
+      "model_args": {},
+      "sequence": 0
+    }
+  ]
+}

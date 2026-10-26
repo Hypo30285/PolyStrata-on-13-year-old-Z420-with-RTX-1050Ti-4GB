@@ -1,0 +1,389 @@
+{
+  "2026-10-26T05-49-35-00-00_arc-challenge_L5q44NFJMDF4KPqSdMBQCh.eval": {
+    "version": 2,
+    "status": "success",
+    "eval": {
+      "eval_set_id": "TDeUMy3np7t8g7pKXmDW3T",
+      "eval_id": "oVwKteh6c9BBJMCPD3cDQd",
+      "run_id": "V9qoKZBXWVF3GynZjMxggG",
+      "created": "2026-10-26T05:49:35+00:00",
+      "task": "arc:challenge",
+      "task_id": "L5q44NFJMDF4KPqSdMBQCh",
+      "task_version": 0,
+      "task_display_name": "arc:challenge",
+      "task_registry_name": "lighteval/get_inspect_ai_task",
+      "task_attribs": {},
+      "task_args": {
+        "lighteval_task_config": "arc:challenge",
+        "epochs": 1,
+        "epochs_reducer": null
+      },
+      "task_args_passed": {
+        "lighteval_task_config": "arc:challenge",
+        "epochs": 1,
+        "epochs_reducer": null
+      },
+      "solver_args_passed": {},
+      "dataset": {
+        "name": "allenai/ai2_arc",
+        "location": "allenai/ai2_arc",
+        "samples": 1172,
+        "sample_ids": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "shuffled": false
+      },
+      "model": "openai/ornith-1.5-35b-a3b-apex-i-quality",
+      "model_generate_config": {
+        "max_retries": 5,
+        "timeout": 30,
+        "max_connections": 50
+      },
+      "model_args": {},
+      "config": {
+        "limit": 5,
+        "epochs": 1,
+        "fail_on_error": true,
+        "continue_on_fail": false,
+        "retry_on_error": 1,
+        "score_on_error": false,
+        "max_tasks": 10,
+        "sandbox_cleanup": true,
+        "sandbox_prebuilt": false,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "score_display": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.280",
+        "lighteval": "0.13.0"
+      },
+      "scorers": [
+        {
+          "name": "choice",
+          "options": {},
+          "metrics": [
+            {
+              "name": "inspect_ai/accuracy",
+              "options": {}
+            },
+            {
+              "name": "inspect_ai/stderr",
+              "options": {}
+            }
+          ],
+          "metadata": {}
+        }
+      ]
+    },
+    "plan": {
+      "name": "plan",
+      "steps": [
+        {
+          "solver": "multiple_choice",
+          "params": {
+            "template": null,
+            "cot": false,
+            "multiple_correct": false,
+            "max_tokens": null,
+            "cache": true
+          },
+          "params_passed": {
+            "cache": true
+          }
+        }
+      ],
+      "config": {
+        "max_retries": 5,
+        "timeout": 30,
+        "max_connections": 50
+      }
+    },
+    "results": {
+      "total_samples": 5,
+      "completed_samples": 5,
+      "scores": [
+        {
+          "name": "choice",
+          "scorer": "choice",
+          "scored_samples": 5,
+          "unscored_samples": 0,
+          "params": {},
+          "metrics": {
+            "accuracy": {
+              "name": "accuracy",
+              "value": 1.0,
+              "params": {}
+            },
+            "stderr": {
+              "name": "stderr",
+              "value": 0.0,
+              "params": {}
+            }
+          }
+        }
+      ],
+      "headline": {
+        "scorer": "choice",
+        "score": "choice",
+        "metric": "accuracy"
+      }
+    },
+    "stats": {
+      "started_at": "2026-10-26T05:49:35+00:00",
+      "completed_at": "2026-10-26T05:50:30+00:00",
+      "model_usage": {
+        "openai/ornith-1.5-35b-a3b-apex-i-quality": {
+          "input_tokens": 1518,
+          "output_tokens": 903,
+          "total_tokens": 2421,
+          "reasoning_tokens": 873
+        }
+      },
+      "role_usage": {},
+      "connection_limit_history": []
+    },
+    "invalidated": false,
+    "tags": [],
+    "metadata": {},
+    "reductions": [
+      {
+        "scorer": "choice",
+        "samples": [
+          {
+            "value": 1.0,
+            "answer": "C",
+            "explanation": "ANSWER: C",
+            "history": [],
+            "sample_id": 1
+          },
+          {
+            "value": 1.0,
+            "answer": "B",
+            "explanation": "ANSWER: B",
+            "history": [],
+            "sample_id": 2
+          },
+          {
+            "value": 1.0,
+            "answer": "C",
+            "explanation": "ANSWER: C",
+            "history": [],
+            "sample_id": 3
+          },
+          {
+            "value": 1.0,
+            "answer": "D",
+            "explanation": "ANSWER: D",
+            "history": [],
+            "sample_id": 4
+          },
+          {
+            "value": 1.0,
+            "answer": "D",
+            "explanation": "ANSWER: D",
+            "history": [],
+            "sample_id": 5
+          }
+        ]
+      }
+    ]
+  },
+  "2026-10-26T05-48-12-00-00_gsm8k_R6Kye2aPajnZWMjUR6J6Wd.eval": {
+    "version": 2,
+    "status": "success",
+    "eval": {
+      "eval_set_id": "TDeUMy3np7t8g7pKXmDW3T",
+      "eval_id": "RBJViue3vkF6c5mBgNh27i",
+      "run_id": "FictWH3bAhoFWmhjt6NcX3",
+      "created": "2026-10-26T05:48:12+00:00",
+      "task": "gsm8k",
+      "task_id": "R6Kye2aPajnZWMjUR6J6Wd",
+      "task_version": 0,
+      "task_display_name": "gsm8k",
+      "task_registry_name": "lighteval/get_inspect_ai_task",
+      "task_attribs": {},
+      "task_args": {
+        "lighteval_task_config": "gsm8k",
+        "epochs": 1,
+        "epochs_reducer": null
+      },
+      "task_args_passed": {
+        "lighteval_task_config": "gsm8k",
+        "epochs": 1,
+        "epochs_reducer": null
+      },
+      "solver_args_passed": {},
+      "dataset": {
+        "name": "openai/gsm8k",
+        "location": "openai/gsm8k",
+        "samples": 1319,
+        "sample_ids": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "shuffled": false
+      },
+      "model": "openai/ornith-1.5-35b-a3b-apex-i-quality",
+      "model_generate_config": {
+        "max_retries": 5,
+        "timeout": 30,
+        "max_connections": 50
+      },
+      "model_args": {},
+      "config": {
+        "limit": 5,
+        "epochs": 1,
+        "fail_on_error": true,
+        "continue_on_fail": false,
+        "retry_on_error": 1,
+        "score_on_error": false,
+        "max_tasks": 10,
+        "sandbox_cleanup": true,
+        "sandbox_prebuilt": false,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "score_display": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.280",
+        "lighteval": "0.13.0"
+      },
+      "scorers": [
+        {
+          "name": "math_scorer",
+          "options": {},
+          "metrics": [
+            {
+              "name": "inspect_ai/accuracy",
+              "options": {}
+            }
+          ],
+          "metadata": {}
+        }
+      ]
+    },
+    "plan": {
+      "name": "plan",
+      "steps": [
+        {
+          "solver": "prompt_template",
+          "params": {
+            "template": "Solve the following math problem step by step. The last line of your\nresponse should be of the form \"ANSWER: $ANSWER\" (without quotes)\nwhere $ANSWER is the answer to the problem.\n\n{prompt}\n\nRemember to put your answer on its own line at the end in the form\n\"ANSWER: $ANSWER\" (without quotes) where $ANSWER is the answer to\nthe problem, and you do not need to use a \\boxed command.\n\nReasoning:"
+          },
+          "params_passed": {
+            "template": "Solve the following math problem step by step. The last line of your\nresponse should be of the form \"ANSWER: $ANSWER\" (without quotes)\nwhere $ANSWER is the answer to the problem.\n\n{prompt}\n\nRemember to put your answer on its own line at the end in the form\n\"ANSWER: $ANSWER\" (without quotes) where $ANSWER is the answer to\nthe problem, and you do not need to use a \\boxed command.\n\nReasoning:"
+          }
+        },
+        {
+          "solver": "generate",
+          "params": {
+            "tool_calls": "loop",
+            "cache": true
+          },
+          "params_passed": {
+            "cache": true
+          }
+        }
+      ],
+      "config": {
+        "max_retries": 5,
+        "timeout": 30,
+        "max_connections": 50
+      }
+    },
+    "results": {
+      "total_samples": 5,
+      "completed_samples": 5,
+      "scores": [
+        {
+          "name": "math_scorer",
+          "scorer": "math_scorer",
+          "scored_samples": 5,
+          "unscored_samples": 0,
+          "params": {},
+          "metrics": {
+            "accuracy": {
+              "name": "accuracy",
+              "value": 1.0,
+              "params": {}
+            }
+          }
+        }
+      ],
+      "headline": {
+        "scorer": "math_scorer",
+        "score": "math_scorer",
+        "metric": "accuracy"
+      }
+    },
+    "stats": {
+      "started_at": "2026-10-26T05:48:12+00:00",
+      "completed_at": "2026-10-26T05:49:17+00:00",
+      "model_usage": {
+        "openai/ornith-1.5-35b-a3b-apex-i-quality": {
+          "input_tokens": 1709,
+          "output_tokens": 1102,
+          "total_tokens": 2811,
+          "reasoning_tokens": 489
+        }
+      },
+      "role_usage": {},
+      "connection_limit_history": []
+    },
+    "invalidated": false,
+    "tags": [],
+    "metadata": {},
+    "reductions": [
+      {
+        "scorer": "math_scorer",
+        "samples": [
+          {
+            "value": 1.0,
+            "answer": "[18, '18']",
+            "explanation": "Janet's ducks lay 16 eggs per day.\n\nFirst, subtract the eggs she uses:\n- She eats 3 for breakfast\n- She uses 4 for muffins\n\nRemaining eggs = 16 - 3 - 4 = 9 eggs\n\nShe sells these 9 eggs at $2 per egg:\n9 × $2 = $18\n\nANSWER: 18",
+            "history": [],
+            "sample_id": 1
+          },
+          {
+            "value": 1.0,
+            "answer": "[3, '3']",
+            "explanation": "**Step 1:** Determine the amount of blue fiber.\nThe robe takes 2 bolts of blue fiber.\n\n**Step 2:** Determine the amount of white fiber.\nWhite fiber is half as much as blue fiber:\n2 ÷ 2 = 1 bolt\n\n**Step 3:** Add them together for the total.\n2 (blue) + 1 (white) = 3 bolts\n\nANSWER: 3",
+            "history": [],
+            "sample_id": 2
+          },
+          {
+            "value": 1.0,
+            "answer": "[70000, '70000']",
+            "explanation": "**Step 1: Calculate the total cost of the house.**\n\nPurchase price + repair costs = $80,000 + $50,000 = $130,000\n\n**Step 2: Calculate the increased value of the house.**\n\nThe repairs increased the value by 150% of the original purchase price.\n\nIncrease in value = 150% × $80,000 = 1.5 × $80,000 = $120,000\n\nNew value = $80,000 + $120,000 = $200,000\n\n**Step 3: Calculate the profit.**\n\nProfit = New value − Total cost = $200,000 − $130,000 = $70,000\n\nANSWER: $70,000",
+            "history": [],
+            "sample_id": 3
+          },
+          {
+            "value": 1.0,
+            "answer": "[540, '540']",
+            "explanation": "Step 1: Find the number of sprints per week.\nJames runs 3 sprints each time, and he does this 3 times a week.\n3 sprints × 3 times = 9 sprints per week\n\nStep 2: Find the total distance.\nEach sprint is 60 meters.\n9 sprints × 60 meters = 540 meters\n\nANSWER: 540 meters",
+            "history": [],
+            "sample_id": 4
+          },
+          {
+            "value": 1.0,
+            "answer": "[20, '20']",
+            "explanation": "Step 1: Calculate the total feed needed per day.\nEach chicken gets 3 cups per day, and there are 20 chickens.\nTotal = 3 × 20 = 60 cups per day.\n\nStep 2: Add up the feed given in the first two meals.\nMorning: 15 cups\nAfternoon: 25 cups\nTotal so far = 15 + 25 = 40 cups.\n\nStep 3: Subtract from the daily total to find the final meal.\nFinal meal = 60 − 40 = 20 cups.\n\nANSWER: 20 cups",
+            "history": [],
+            "sample_id": 5
+          }
+        ]
+      }
+    ]
+  }
+}

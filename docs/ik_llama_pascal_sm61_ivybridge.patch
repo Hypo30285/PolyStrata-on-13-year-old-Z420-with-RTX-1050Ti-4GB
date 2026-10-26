@@ -1,0 +1,293 @@
+diff --git a/ggml/src/ggml-cuda.cu b/ggml/src/ggml-cuda.cu
+index e1f368a..8d0c497 100644
+--- a/ggml/src/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda.cu
+@@ -2932,8 +2932,6 @@ static bool ggml_cuda_mul_mat_id(ggml_backend_cuda_context & ctx, ggml_tensor *
+     const ggml_tensor * src1 = dst->src[1];
+     const ggml_tensor * ids  = dst->src[2];
+ 
+-    CUDA_CHECK(cudaMemsetAsync((char *)dst->data, 0, ggml_nbytes(dst), ctx.stream()));
+-
+     if (src1->ne[1] <= MMVQ_MAX_BATCH_SIZE && src1->ne[2] == 1 && src1->ne[3] == 1 &&
+         ggml_is_quantized(src0->type) &&
+         ggml_backend_buffer_is_cuda(src0->buffer) &&
+@@ -2997,6 +2995,8 @@ static bool ggml_cuda_mul_mat_id(ggml_backend_cuda_context & ctx, ggml_tensor *
+         }
+     }
+ 
++    CUDA_CHECK(cudaMemsetAsync((char *)dst->data, 0, ggml_nbytes(dst), ctx.stream()));
++
+     if (src1->ne[2] <= ctx.mmq_id_thresh*src0->ne[2] &&
+         ggml_is_quantized(src0->type) && ggml_cuda_can_use_mmq_id(src0->type, ggml_cuda_info().devices[ctx.device].cc, src1->ne[2])) {
+         ggml_cuda_mul_mat_q_id(ctx, src0, src1, ids, dst, nullptr, nullptr);
+@@ -4597,7 +4597,8 @@ static bool check_node_graph_compatibility_and_refresh_copy_ops(ggml_cuda_graph
+             break;
+         }
+ 
+-        if (node->op == GGML_OP_MUL_MAT_ID && (node->ne[2] != 1 || node->src[2]->ne[0] != 1)) {
++        if (node->op == GGML_OP_MUL_MAT_ID && (node->ne[2] != 1 || node->src[2]->ne[0] != 1) &&
++            !(node->src[1]->ne[1] == 1 && node->src[1]->ne[2] == 1 && node->src[1]->ne[3] == 1 && ggml_is_quantized(node->src[0]->type))) {
+             use_cuda_graph = false; // This node type is not supported by CUDA graph capture
+ #ifndef NDEBUG
+             GGML_CUDA_LOG_DEBUG("%s(%s): disabling CUDA graphs due to unsupported node type %ld %ld\n",
+@@ -4839,7 +4840,7 @@ GGML_CALL static enum ggml_status ggml_backend_cuda_graph_compute(ggml_backend_t
+     bool cuda_graph_update_required = false;
+ 
+     if (use_cuda_graph && graph->graph == nullptr) {
+-        if (ggml_cuda_info().devices[cuda_ctx->device].cc < CC_AMPERE) {
++        if (ggml_cuda_info().devices[cuda_ctx->device].cc < CC_PASCAL) {
+             graph->disable_due_to_gpu_arch = true;
+ #ifndef NDEBUG
+             GGML_CUDA_LOG_DEBUG("%s: disabling CUDA graphs due to GPU architecture\n", __func__);
+diff --git a/ggml/src/ggml-cuda/mmvq-templates.cuh b/ggml/src/ggml-cuda/mmvq-templates.cuh
+index fcb2f0c..bbc6ca1 100644
+--- a/ggml/src/ggml-cuda/mmvq-templates.cuh
++++ b/ggml/src/ggml-cuda/mmvq-templates.cuh
+@@ -12,7 +12,7 @@
+ #include "mmvq-args.h"
+ 
+ static constexpr __host__ __device__ int mmvq_rows_per_cuda_block(const ggml_type type, const int ncols_y, const int arch) {
+-    const bool two_rows_n1 = (arch <= CC_PASCAL || arch == CC_TURING) && type != GGML_TYPE_Q3_K;
++    const bool two_rows_n1 = (arch <= MIN_CC_DP4A || arch == CC_TURING) && type != GGML_TYPE_Q3_K;
+     return ncols_y == 1 ? (two_rows_n1 ? 2 : 1) : ncols_y < 4 ? 1 : 2;
+ }
+ 
+diff --git a/ggml/src/ggml.c b/ggml/src/ggml.c
+index a3f325c..598416d 100644
+--- a/ggml/src/ggml.c
++++ b/ggml/src/ggml.c
+@@ -4018,6 +4018,41 @@ inline static __m128 ggml_v_softcap(__m128 x, float s_before, float s_after) {
+     return _mm_mul_ps(th, _mm_set1_ps(s_after));
+ }
+ 
++inline static void ggml_vec_sigmoid_mul_f32(int n, const float * x, const float * y, float * z) {
++    const __m128 zero = _mm_setzero_ps();
++    const __m128 one = _mm_set1_ps(1.0f);
++    int i = 0;
++    _Pragma("GCC unroll 4")
++    for ( ; i + 3 < n; i += 4) {
++        __m128 vx = _mm_loadu_ps(x + i);
++        __m128 vy = _mm_loadu_ps(y + i);
++        __m128 exp_vx = ggml_v_expf(_mm_sub_ps(zero, vx));
++        __m128 denom  = _mm_add_ps(one, exp_vx);
++        __m128 result = _mm_div_ps(vy, denom);
++        _mm_storeu_ps(z + i, result);
++    }
++    for (; i < n; ++i) {
++        z[i] = y[i]/(1.0f + expf(-x[i]));
++    }
++}
++
++inline static void ggml_vec_simd_sigmoid_f32(int n, const float * x, float * y) {
++    const __m128 zero = _mm_setzero_ps();
++    const __m128 one = _mm_set1_ps(1.0f);
++    int i = 0;
++    _Pragma("GCC unroll 4")
++    for ( ; i + 3 < n; i += 4) {
++        __m128 vx = _mm_loadu_ps(x + i);
++        __m128 exp_vx = ggml_v_expf(_mm_sub_ps(zero, vx));
++        __m128 denom  = _mm_add_ps(one, exp_vx);
++        __m128 result = _mm_div_ps(one, denom);
++        _mm_storeu_ps(y + i, result);
++    }
++    if (i < n) {
++        ggml_vec_sigmoid_f32(n - i, y + i, x + i);
++    }
++}
++
+ #endif // __ARM_NEON / __AVX2__ / __SSE2__
+ 
+ static void ggml_vec_silu_f32(const int n, float * y, const float * x) {
+diff --git a/ggml/src/iqk/iqk_cpu_ops.cpp b/ggml/src/iqk/iqk_cpu_ops.cpp
+index 8fd51f1..6e49dce 100644
+--- a/ggml/src/iqk/iqk_cpu_ops.cpp
++++ b/ggml/src/iqk/iqk_cpu_ops.cpp
+@@ -10,6 +10,10 @@
+ #include "iqk_utils.h"
+ #include "iqk_common.h"
+ #include "ggml.h"
++#include "ggml-impl.h"
++#include "ggml-quants.h"
++#define GGML_COMMON_IMPL_C
++#include "ggml-common.h"
+ 
+ #include <cstdint>
+ #include <vector>
+diff --git a/ggml/src/iqk/iqk_flash_attn.cpp b/ggml/src/iqk/iqk_flash_attn.cpp
+index f926e9b..5dae49c 100644
+--- a/ggml/src/iqk/iqk_flash_attn.cpp
++++ b/ggml/src/iqk/iqk_flash_attn.cpp
+@@ -604,6 +604,12 @@ extern "C" IQK_API bool iqk_flash_attn_noalibi(int type_q, int type_mask, float
+ 
+ #else
+ 
++#include "iqk_mul_mat.h"
++
++size_t iqk_fa_work_buffer_size([[maybe_unused]] const struct ggml_tensor * dst, [[maybe_unused]] int nthread) {
++    return 0;
++}
++
+ bool iqk_flash_attn_noalibi([[maybe_unused]] int type_q, [[maybe_unused]] int type_mask, [[maybe_unused]] float max_bias,
+                             [[maybe_unused]] int neq3, [[maybe_unused]] int neq2, [[maybe_unused]] long nbq3, [[maybe_unused]] long nbq2,
+                             [[maybe_unused]] int nek3, [[maybe_unused]] int nek2, [[maybe_unused]] long nbk3, [[maybe_unused]] long nbk2,
+@@ -623,6 +629,7 @@ bool iqk_flash_attn_noalibi([[maybe_unused]] int type_q, [[maybe_unused]] int ty
+                             [[maybe_unused]] const void  * k,        // k matrix. Assumed to be fp16, nq x nk elements
+                             [[maybe_unused]] const void  * v,        // v matrix. Assumed to be fp16, nq x nk elements
+                             [[maybe_unused]] const void  * mask,     // mask. If not null, assumed to be fp16. nq x nk elements
++                            [[maybe_unused]] const void  * sinks,
+                             [[maybe_unused]] float         scale,    // scale applied before softmax
+                             [[maybe_unused]] float         softcap,  // if > 0, a "soft-cap" operation is applied before softmax
+                             [[maybe_unused]] float       * qkv,      // v*softmax(scale*(k*q))
+diff --git a/ggml/src/iqk/iqk_mul_mat.cpp b/ggml/src/iqk/iqk_mul_mat.cpp
+index f4e690e..aa0b97f 100644
+--- a/ggml/src/iqk/iqk_mul_mat.cpp
++++ b/ggml/src/iqk/iqk_mul_mat.cpp
+@@ -2395,8 +2395,48 @@ bool iqk_indexer_topk(struct ggml_tensor * dst, void * work_buffer, barrier_t ba
+ #else  // IQK_IMPLEMENT
+ 
+ #include "ggml-impl.h"
++#include "iqk_mul_mat.h"
++#include <algorithm>
++#include <cmath>
++#include <utility>
++
++namespace {
++void iqk_topk_moe_impl(int n_experts, int n_experts_used, const float * logits,
++        float * weights, int32_t * ids) {
++    for (int j = 0; j < n_experts; ++j) ids[j] = j;
++    std::partial_sort(ids, ids + n_experts_used, ids + n_experts,
++            [logits] (int i1, int i2) {
++                return logits[i1] > logits[i2];
++            });
++    float max = logits[ids[0]];
++    float sum = 0;
++    for (int j = 0; j < n_experts_used; ++j) {
++        float p = expf(logits[ids[j]] - max);
++        weights[j] = p;
++        sum += p;
++    }
++    for (int j = n_experts_used; j < n_experts; ++j) {
++        sum += expf(logits[ids[j]] - max);
++    }
++    float norm = 1/sum;
++    for (int j = 0; j < n_experts_used; ++j) weights[j] *= norm;
++}
++}
++
++void iqk_topk_moe(int n_experts, int n_experts_used, int nrows, const float * logits,
++        float * weights, int32_t * ids, int ith, int nth) {
++    int npt = (nrows + nth - 1)/nth;
++    int first = ith*npt;
++    int last  = std::min(nrows, first + npt);
++    for (int row = first; row < last; ++row) {
++        auto row_logits  = logits  + row*n_experts;
++        auto row_weights = weights + row*n_experts_used;
++        auto row_ids     = ids     + row*n_experts;
++        iqk_topk_moe_impl(n_experts, n_experts_used, row_logits, row_weights, row_ids);
++    }
++}
+ 
+-extern "C" IQK_API bool iqk_mul_mat(int, long, long, long, int, const void *, long, int, const void *, long, float *, long, int, int) {
++extern "C" IQK_API bool iqk_mul_mat(long, long, long, int, const void *, long, int, const void *, long, float *, long, int, int) {
+     GGML_ABORT("Unsupported CPU. You may need to manually set compilation flags\n");
+     return false;
+ }
+@@ -2420,6 +2460,7 @@ extern "C" IQK_API bool iqk_mul_mat_moe(long, long, long, int, int, const void *
+ extern "C" IQK_API bool iqk_moe_fused_up_gate(long /*Nx*/, long /*Ny*/, long /*ne00*/, int /*ne11*/, int /*unary_op*/,
+         int /*typeA*/, const void * /*Aup*/, const void * /*Agate*/, long /*strideA*/,
+         int /*typeB*/, const void * /*B*/, long /*strideB*/,
++        const char * /*up_b*/, const char * /*gate_b*/,
+         float * /*C*/, long /*nb1*/, long /*nb2*/, const void * /*vrow_mapping*/, float, int /*ith*/, int /*nth*/) {
+     GGML_ABORT("Unsupported CPU. You may need to manually set compilation flags\n");
+     return false;
+diff --git a/ggml/src/iqk/iqk_quantize.cpp b/ggml/src/iqk/iqk_quantize.cpp
+index ad2db00..dbf4174 100644
+--- a/ggml/src/iqk/iqk_quantize.cpp
++++ b/ggml/src/iqk/iqk_quantize.cpp
+@@ -1003,6 +1003,7 @@ void quantize_row_q8_0_x4(const float * x, void * vy, int64_t k) {
+         __m256i i2 = _mm256_cvtps_epi32( v2 );
+         __m256i i3 = _mm256_cvtps_epi32( v3 );
+ 
++#if defined(__AVX2__)
+         // Convert int32 to int16
+         i0 = _mm256_packs_epi32( i0, i1 );  // 0, 1, 2, 3,  8, 9, 10, 11,  4, 5, 6, 7, 12, 13, 14, 15
+         i2 = _mm256_packs_epi32( i2, i3 );  // 16, 17, 18, 19,  24, 25, 26, 27,  20, 21, 22, 23, 28, 29, 30, 31
+@@ -1020,6 +1021,17 @@ void quantize_row_q8_0_x4(const float * x, void * vy, int64_t k) {
+         } else {
+             _mm256_storeu_si256((__m256i *)y[i].qs, i0);
+         }
++#else
++        __m128i p0 = _mm_packs_epi32(_mm256_castsi256_si128(i0), _mm256_extractf128_si256(i0, 1));
++        __m128i p1 = _mm_packs_epi32(_mm256_castsi256_si128(i1), _mm256_extractf128_si256(i1, 1));
++        __m128i p2 = _mm_packs_epi32(_mm256_castsi256_si128(i2), _mm256_extractf128_si256(i2, 1));
++        __m128i p3 = _mm_packs_epi32(_mm256_castsi256_si128(i3), _mm256_extractf128_si256(i3, 1));
++        __m128i q0 = _mm_packs_epi16(p0, p1);
++        __m128i q1 = _mm_packs_epi16(p2, p3);
++        int8_t * dst_qs = (i < nb4) ? (y4[i4].qs + 32*ir) : y[i].qs;
++        _mm_storeu_si128((__m128i *)dst_qs, q0);
++        _mm_storeu_si128((__m128i *)(dst_qs + 16), q1);
++#endif
+     }
+ #endif
+ }
+@@ -1152,8 +1164,21 @@ void quantize_row_q8_1_x4_T(const float * x, Block * y, int64_t k) {
+         __m256i i2 = _mm256_cvtps_epi32( v2 );
+         __m256i i3 = _mm256_cvtps_epi32( v3 );
+ 
++#if defined(__AVX2__)
+         // Compute the sum of the quants and set y[i].s
+         int isum = hsum_i32_8(_mm256_add_epi32(_mm256_add_epi32(i0, i1), _mm256_add_epi32(i2, i3)));
++#else
++        __m128i s01 = _mm_add_epi32(
++            _mm_add_epi32(_mm256_castsi256_si128(i0), _mm256_extractf128_si256(i0, 1)),
++            _mm_add_epi32(_mm256_castsi256_si128(i1), _mm256_extractf128_si256(i1, 1)));
++        __m128i s23 = _mm_add_epi32(
++            _mm_add_epi32(_mm256_castsi256_si128(i2), _mm256_extractf128_si256(i2, 1)),
++            _mm_add_epi32(_mm256_castsi256_si128(i3), _mm256_extractf128_si256(i3, 1)));
++        __m128i s4 = _mm_add_epi32(s01, s23);
++        s4 = _mm_hadd_epi32(s4, s4);
++        s4 = _mm_hadd_epi32(s4, s4);
++        int isum = _mm_cvtsi128_si32(s4);
++#endif
+         if constexpr (std::is_same_v<Block, block_q8_1>) {
+             if (i < nb4) {
+                 y4[i4].d[ir+4] = GGML_FP32_TO_FP16(d * isum);
+@@ -1170,6 +1195,7 @@ void quantize_row_q8_1_x4_T(const float * x, Block * y, int64_t k) {
+             }
+         }
+ 
++#if defined(__AVX2__)
+         // Convert int32 to int16
+         i0 = _mm256_packs_epi32( i0, i1 );  // 0, 1, 2, 3,  8, 9, 10, 11,  4, 5, 6, 7, 12, 13, 14, 15
+         i2 = _mm256_packs_epi32( i2, i3 );  // 16, 17, 18, 19,  24, 25, 26, 27,  20, 21, 22, 23, 28, 29, 30, 31
+@@ -1187,6 +1213,17 @@ void quantize_row_q8_1_x4_T(const float * x, Block * y, int64_t k) {
+         } else {
+             _mm256_storeu_si256((__m256i *)y[i].qs, i0);
+         }
++#else
++        __m128i p0 = _mm_packs_epi32(_mm256_castsi256_si128(i0), _mm256_extractf128_si256(i0, 1));
++        __m128i p1 = _mm_packs_epi32(_mm256_castsi256_si128(i1), _mm256_extractf128_si256(i1, 1));
++        __m128i p2 = _mm_packs_epi32(_mm256_castsi256_si128(i2), _mm256_extractf128_si256(i2, 1));
++        __m128i p3 = _mm_packs_epi32(_mm256_castsi256_si128(i3), _mm256_extractf128_si256(i3, 1));
++        __m128i q0 = _mm_packs_epi16(p0, p1);
++        __m128i q1 = _mm_packs_epi16(p2, p3);
++        int8_t * dst_qs = (i < nb4) ? (y4[i4].qs + 32*ir) : y[i].qs;
++        _mm_storeu_si128((__m128i *)dst_qs, q0);
++        _mm_storeu_si128((__m128i *)(dst_qs + 16), q1);
++#endif
+     }
+ #endif
+ }
+@@ -8192,11 +8229,9 @@ static void repack_q8_KV(int nrows, int n_per_row, const char * cx, char * cy, [
+             vst1q_s8_x2(qy + 64 + 128*ib, m2);
+             vst1q_s8_x2(qy + 96 + 128*ib, m3);
+ #else
+-            // TODO
+             for (int l = 0; l < 4; ++l) {
+                 for (int k = 0; k < 8; ++k) for (int i = 0; i < 4; ++i) {
+-                    y[ib].qs[32*l+4*k+i+  0] = x8[k][ib].qs[i+4*l+ 0];
+-                    y[ib].qs[32*l+4*k+i+128] = x8[k][ib].qs[i+4*l+16];
++                    qy[128*ib + 32*l + 4*k + i] = x8[k][16*ib + 4*l + i];
+                 }
+             }
+ #endif

@@ -1,0 +1,121 @@
+{
+  "lighteval_version": "0.13.0",
+  "torch_version": "2.14.1+cu130",
+  "timestamp": "2026-10-26T01:53:14-0400",
+  "samples_per_task": 200,
+  "num_runs_per_row": 3,
+  "oct14_baseline_resolved_metadata": {
+    "available": true,
+    "eval_set_id": "BLtJTSmuvpGoEAaBQnJWei",
+    "engine_commit": "7aeb8928",
+    "engine_version": "PolyStrata strata-poly v0.1.42",
+    "launch_flags": "--no-draft --no-graphs --prompt-batch 128 --stage-mib 64 --vram-reserve-mib 550 --conversation-cache-mib 8192 --tail-skip 6",
+    "expert_cache_oct14": "633 / 10240 routed experts (1.1 GiB) on Oct 14 run; 363 / 10240 (0.6 GiB) with desktop active",
+    "thinking_mode": "Enabled (reasoning_budget_tokens=2048; avg 158.6 reasoning tokens/sample on ARC-C, 119.6 on GSM8K)",
+    "arc_scoring_method_oct14": "inspect_ai multiple_choice solver (generated letter A/B/C/D via chat completion)",
+    "gsm8k_5sample": 1.0,
+    "arc_c_5sample": 1.0
+  },
+  "hardware_telemetry": {
+    "nvidia_smi": "Quadro P6000, 61, 12 %, 23555 MiB, 24576 MiB, P0",
+    "lm_sensors": "coretemp-isa-0000 | Adapter: ISA adapter | Package id 0:  +46.0\u00b0C  (high = +79.0\u00b0C, crit = +99.0\u00b0C) | Core 0:        +41.0\u00b0C  (high = +79.0\u00b0C, crit = +99.0\u00b0C) | Core 1:        +37.0\u00b0C  (high = +79.0\u00b0C, crit = +99.0\u00b0C) | Core 2:        +40.0\u00b0C  (high = +79.0\u00b0C, crit = +99.0\u00b0C) | Core 3:        +40.0\u00b0C  (high = +79.0\u00b0C, crit = +99.0\u00b0C) | Core 4:        +37.0\u00b0C  (high = +79.0\u00b0C, crit = +99.0\u00b0C)"
+  },
+  "results_median_of_3_runs": {
+    "Row #0 (FP32 Baseline Reference)": {
+      "samples_per_task": 200,
+      "num_runs": 3,
+      "prefill_runs_tps": [
+        111348.1,
+        114485.2,
+        114192.7
+      ],
+      "decode_runs_tps": [
+        1792.3,
+        1744.9,
+        1802.3
+      ],
+      "median_prefill_tps": 114192.7,
+      "median_decode_tps": 1792.3,
+      "gsm8k_matches": "200/200",
+      "gsm8k_accuracy_pct": 100.0,
+      "gsm8k_95ci_halfwidth_pct": 0.03,
+      "gsm8k_wilson_95ci_pct": [
+        98.12,
+        100.0
+      ],
+      "arc_c_matches": "200/200",
+      "arc_choice_agreement_pct": 100.0,
+      "arc_c_95ci_halfwidth_pct": 0.03,
+      "arc_c_wilson_95ci_pct": [
+        98.12,
+        100.0
+      ]
+    },
+    "Row #5 (TileLang V7 PASCAL-Q8_DP4A)": {
+      "samples_per_task": 200,
+      "num_runs": 3,
+      "prefill_runs_tps": [
+        810439.5,
+        883417.5,
+        892967.8
+      ],
+      "decode_runs_tps": [
+        1830.4,
+        1937.2,
+        1935.0
+      ],
+      "median_prefill_tps": 883417.5,
+      "median_decode_tps": 1935.0,
+      "gsm8k_matches": "200/200",
+      "gsm8k_accuracy_pct": 100.0,
+      "gsm8k_95ci_halfwidth_pct": 0.03,
+      "gsm8k_wilson_95ci_pct": [
+        98.12,
+        100.0
+      ],
+      "arc_c_matches": "200/200",
+      "arc_choice_agreement_pct": 100.0,
+      "arc_c_95ci_halfwidth_pct": 0.03,
+      "arc_c_wilson_95ci_pct": [
+        98.12,
+        100.0
+      ]
+    },
+    "Row #6 (PyTorch Optimize V9 PASCAL-Q4_DP4A + pascal_sm61)": {
+      "samples_per_task": 200,
+      "num_runs": 3,
+      "prefill_runs_tps": [
+        786187.7,
+        813012.3,
+        803002.9
+      ],
+      "decode_runs_tps": [
+        1922.2,
+        1652.5,
+        1839.7
+      ],
+      "median_prefill_tps": 803002.9,
+      "median_decode_tps": 1839.7,
+      "gsm8k_matches": "200/200",
+      "gsm8k_accuracy_pct": 100.0,
+      "gsm8k_95ci_halfwidth_pct": 0.03,
+      "gsm8k_wilson_95ci_pct": [
+        98.12,
+        100.0
+      ],
+      "arc_c_matches": "200/200",
+      "arc_choice_agreement_pct": 100.0,
+      "arc_c_95ci_halfwidth_pct": 0.03,
+      "arc_c_wilson_95ci_pct": [
+        98.12,
+        100.0
+      ]
+    }
+  },
+  "quality_drift_50_prompts": {
+    "row5_q8_top1_agreement_pct": 99.5,
+    "row5_q8_mean_kl_divergence": 6e-05,
+    "row6_q4_top1_agreement_pct": 98.5,
+    "row6_q4_mean_kl_divergence": 0.000172
+  }
+}
